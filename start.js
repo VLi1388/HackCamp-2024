@@ -64,7 +64,10 @@ submitButton.addEventListener("click", () => {
 
     alert(`Your study session is set for ${hours} hours, ${minutes} minutes, and ${urls.length} websites.`);
 
-    
+
+    // Select the first URL as monitoredUrl
+    const monitoredUrl = urls[0]; // First URL entered
+    console.log(`Automatically monitoring the first URL: ${monitoredUrl}`);
     
     if (!urls.includes(monitoredUrl)) {
         alert("Invalid URL selected for monitoring.");
