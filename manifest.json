@@ -1,0 +1,9 @@
+{
+    "manifest_version": 3,
+    "name": "Focish",
+    "version": "1.0",
+    "description": "Stay focused and save your fish!",
+    "action": {
+        "default_popup": "popup.html"
+    }
+}

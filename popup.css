@@ -1,0 +1,58 @@
+/* Basic Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f8ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    width: 300px;
+}
+
+#popup-container {
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+h1 {
+    font-size: 24px;
+    color: #2a9d8f;
+}
+
+p {
+    font-size: 14px;
+    color: #264653;
+}
+
+/* Fish Section */
+#fish-container {
+    background-color: #e0f7fa;
+    border: 2px solid #2a9d8f;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 20px 0;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #006064;
+}
+
+/* Button */
+button {
+    background-color: #2a9d8f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #1e6e59;
+}
