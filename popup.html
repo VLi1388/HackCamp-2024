@@ -9,16 +9,29 @@
 <body>
     <div id="popup-container">
         <h1>Focish</h1>
-        <p>Stay focused and save your fish!</p>
-
+        <p id="session-status">Start a focus session to save your fish!</p>
+    
         <!-- Fish Section -->
         <div id="fish-container">
-            <p>🐟 Your fish will appear here...</p>
+            <div id="fish-placeholder">
+                <p>🐟 Your fish will appear here...</p>
+            </div>
         </div>
-
-        <!-- Start Button -->
-        <button id="start-button">Start</button>
+    
+        <!-- Countdown Timer -->
+        <div id="countdown-container" class="hidden">
+            <p id="countdown-timer">Time Left: --:--:--</p>
+        </div>
+    
+        <!-- Action Buttons -->
+        <div id="action-buttons">
+            <button id="start-button">Start</button>
+            <button id="pause-button" class="hidden">Pause</button>
+            <button id="quit-button" class="hidden">Quit</button>
+        </div>
     </div>
+    
+    
 
     <script src="popup.js"></script>
 </body>
