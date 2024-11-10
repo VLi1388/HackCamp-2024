@@ -8,7 +8,38 @@ let countdown = parseInt(localStorage.getItem("countdown")) || 0;
 let timer; // To store the interval ID
 let isPaused = false;
 
+
+// variables for fish system
+const fishContainer = document.getElementById("fish-container");
+const waterLevel = document.getElementById("water-level");
+const increaseWaterButton = document.getElementById("increase-water");
+const decreaseWaterButton = document.getElementById("decrease-water");
+
+// Fish element with animation frames
+const fish = document.createElement("span");
+fish.style.position = "absolute";
+fishContainer.appendChild(fish);
+
+// Animation frames for the fish (replace with actual frames if available)
+const fishFrames = ["🐟", "🐠", "🐡"];
+let frameIndex = 0; // Start at the first frame
+
+// Movement variables
+let currentWaterHeight = 100;
+let fishX = 50; // Initial position
+let fishY = 50;
+let directionX = 1; // Horizontal movement direction: -1, 0, or 1
+let directionY = 1; // Vertical movement direction: -1, 0, or 1
+let fishMovementInterval;
+let turnInterval;
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
+    updateWaterLevel(0); // Set initial water level
+    fishMovementInterval = setInterval(moveFish, 50); // Move fish every 50ms
+    turnInterval = setInterval(randomTurn, 10000); // Decide to turn every 10 seconds
+    
     // Handle session state on load
     if (countdown > 0) {
         sessionStatus.textContent = `Session Active`;
@@ -103,3 +134,68 @@ function startCountdown(duration) {
         }
     }, 1000);
 }
+
+
+// functions for fish system
+// Function to update the fish's position and direction
+function moveFish() {
+    // Update the frame for animation
+    fish.textContent = fishFrames[frameIndex];
+    frameIndex = (frameIndex + 1) % fishFrames.length;
+
+    // Calculate new position
+    fishX += directionX * 2; // Adjust movement speed by changing multiplier
+    fishY += directionY * 2;
+
+    // Get bounds for movement within the water level
+    const waterRect = waterLevel.getBoundingClientRect();
+    const containerRect = fishContainer.getBoundingClientRect();
+
+    // Calculate minY and maxY based on current water level height
+    const minY = containerRect.height - waterRect.height - (fish.offsetHeight)/2;
+    const maxY = containerRect.height - fish.offsetHeight;
+    const minX = 0;
+    const maxX = containerRect.width - fish.offsetWidth;
+
+    // Boundary check and change direction if necessary
+    if (fishX <= minX || fishX >= maxX) directionX *= -1;
+    if (fishY <= minY || fishY >= maxY) directionY *= -1;
+
+    // Apply the updated position
+    fish.style.left = `${fishX}px`;
+    fish.style.top = `${fishY}px`;
+}
+
+// Randomly decide to turn every 10 seconds
+function randomTurn() {
+    const turnDecision = Math.floor(Math.random() * 10) + 1;
+    if (turnDecision === 6) { // If the random number is 6, change direction
+        directionX = (Math.floor(Math.random() * 3) - 1); // -1, 0, or 1
+        directionY = (Math.floor(Math.random() * 3) - 1); // -1, 0, or 1
+    }
+}
+
+// Function to update the water level height
+function updateWaterLevel(change) {
+    currentWaterHeight += change;
+    if (currentWaterHeight > 100) currentWaterHeight = 100;
+    if (currentWaterHeight < 0) currentWaterHeight = 0;
+    waterLevel.style.height = `${currentWaterHeight}%`;
+
+    // If water level reaches 0, stop the fish movement and remove the fish
+    if (currentWaterHeight === 0) {
+        clearInterval(fishMovementInterval); // Stop movement
+        clearInterval(turnInterval); // Stop random turns
+        fishContainer.removeChild(fish); // Remove the fish from the container
+        fishContainer.innerHTML = "<p>You've killed your fish 😡</p>";
+    }
+}
+
+// Event listeners for water level control buttons
+increaseWaterButton.addEventListener("click", () => {
+    if (currentWaterHeight < 100) updateWaterLevel(10);
+});
+
+decreaseWaterButton.addEventListener("click", () => {
+    if (currentWaterHeight > 0) updateWaterLevel(-10);
+});
