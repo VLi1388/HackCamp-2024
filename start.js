@@ -64,6 +64,24 @@ submitButton.addEventListener("click", () => {
 
     alert(`Your study session is set for ${hours} hours, ${minutes} minutes, and ${urls.length} websites.`);
 
+    
+    
+    if (!urls.includes(monitoredUrl)) {
+        alert("Invalid URL selected for monitoring.");
+        return;
+    }
+
+    // Send the monitored URL to background.js
+    chrome.runtime.sendMessage({ action: "setUrl", url: monitoredUrl }, (response) => {
+        if (response && response.success) {
+            alert(`Monitoring set for ${monitoredUrl}.`);
+        }
+    });
+    
+
     // Close the window after submission
     window.close();
 });
+
+
+
