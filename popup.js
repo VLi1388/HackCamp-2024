@@ -1,9 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+
     const startButton = document.getElementById("start-button");
     const pauseButton = document.getElementById("pause-button");
     const quitButton = document.getElementById("quit-button");
     const sessionStatus = document.getElementById("session-status");
-    const fishPlaceholder = document.getElementById("fish-placeholder");
     const countdownContainer = document.getElementById("countdown-container");
 
     let countdown = parseInt(localStorage.getItem("countdown")) || 0;

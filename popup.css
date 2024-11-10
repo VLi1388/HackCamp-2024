@@ -40,6 +40,23 @@ p {
     justify-content: center;
     align-items: center;
     color: #006064;
+
+    /* width: 100px;
+    height: 100px;
+    background-color: blue; */
+
+    position: relative; /* Allows the fish to move within this container */
+    overflow: hidden;   /* Ensures the fish stays within bounds */
+}
+
+/* Water overlay block */
+#water-level {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50%; /* Start with half the container height */
+    background-color: rgba(0, 162, 232, 0.5); /* Light blue with transparency */
+    transition: height 0.5s; /* Smooth transition for water level changes */
 }
 
 /* Button */
