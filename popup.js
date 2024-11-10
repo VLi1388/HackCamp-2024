@@ -99,6 +99,7 @@ pauseButton.addEventListener("click", () => {
         pauseButton.textContent = "Resume";
         isPaused = true;
         clearInterval(timer); // Stop the interval but preserve countdown
+        newTimer.stopCountingDistraction();
     }
 });
 
@@ -190,6 +191,67 @@ function randomTurn() {
     }
 }
 
+
+function Timer(studyHours, studyMin) {
+    this.timeGoal = this.parseToSec(studyHours, studyMin);  
+    this.distractedTime = 0;
+    this.studyTime = 0;  
+
+    this.distractionTimer = null; 
+
+    if (this.timeGoal <= 5400) {  // 1.5 hours in seconds
+        this.timeLimit = 2;  // 5 minutes in seconds ////// 300
+    } else {
+        this.timeLimit = 600;  // 10 minutes in seconds
+    }
+}
+
+// Method to convert hours and minutes to seconds
+Timer.prototype.parseToSec = function(studyHours, studyMin) {
+    let hours = studyHours * 60 * 60; 
+    let minutes = studyMin * 60; 
+    return hours + minutes;
+};
+
+
+Timer.prototype.startInspection = function(isDistracted) {
+    if (isDistracted) {
+        this.handleDistraction();  
+    } 
+};
+
+Timer.prototype.handleDistraction = function() {
+    this.distractionTimer = setInterval(() => {
+        this.distractedTime += 1;  
+        if (this.distractedTime >= this.timeLimit) { 
+            updateWaterLevel(-30);
+        }
+    }, 1000);
+};
+
+Timer.prototype.stopCountingDistraction = function() {
+    if (this.distractionTimer) {
+        clearInterval(this.distractionTimer); 
+        this.distractionTimer = null;  
+    }
+    this.distractedTime = this.timeLimit; 
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Function to update the water level height
 function updateWaterLevel(change) {
     currentWaterHeight += change;
@@ -208,7 +270,7 @@ function updateWaterLevel(change) {
 
     // Save current water level to localStorage
     localStorage.setItem("currentWaterHeight", currentWaterHeight);
-}
+};
 
 // Event listeners for water level control buttons
 increaseWaterButton.addEventListener("click", () => {

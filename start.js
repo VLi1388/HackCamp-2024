@@ -81,9 +81,17 @@ submitButton.addEventListener("click", () => {
         }
     });
     
+    const newTimer = new Timer(hoursInput, minutesInput);
+    
+    newTimer.startInspection(isSwitchedTab);
+
+    
 
     // Close the window after submission
     window.close();
+
+
+
 });
 
 
