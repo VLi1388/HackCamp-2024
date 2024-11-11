@@ -32,9 +32,25 @@ const fishFramesRt = [
     "fishFrames/R5.png"
 ];
 
-let frameIndex = 0; // Start at the first frame
+// Focus tracking variables
+let monitoredUrls = JSON.parse(localStorage.getItem("focusURLs")) || [];
+let monitoredUrl = null;
+
+// Validate and set monitored URL if available
+if (monitoredUrls.length > 0 && monitoredUrls[0]) {
+    try {
+        monitoredUrl = new URL(monitoredUrls[0]).hostname; // Extract hostname
+        console.log("Monitored URL is set to:", monitoredUrl); // Add this debug log
+    } catch (e) {
+        console.error("Invalid URL in focusURLs:", e);
+    }
+}
+
+let distractedTimer;
+let isDistracted = false;
 
 // Create the fish image element instead of using a text span
+let frameIndex = 0; // Start at the first frame
 const fish = document.createElement("img");
 fish.style.position = "absolute";
 fish.style.width = "30px"; // Set desired width (smaller size)
@@ -52,33 +68,137 @@ let turnInterval;
 
 
 
+// Add event listeners for tab monitoring on load
 document.addEventListener("DOMContentLoaded", () => {
-    // Retrieve saved water level and fish position
+    // Existing initialization code for fish and water
     currentWaterHeight = parseInt(localStorage.getItem("currentWaterHeight")) || 100;
     fishX = parseFloat(localStorage.getItem("fishX")) || 50;
     fishY = parseFloat(localStorage.getItem("fishY")) || 50;
-
-    // Apply saved water level
     waterLevel.style.height = `${currentWaterHeight}%`;
-
-    // Apply saved fish position
     fish.style.left = `${fishX}px`;
     fish.style.top = `${fishY}px`;
+    fishMovementInterval = setInterval(moveFish, 50); 
+    turnInterval = setInterval(randomTurn, 5000); 
 
-    // Set intervals for movement and turning
-    fishMovementInterval = setInterval(moveFish, 50); // Move fish every 50ms
-    turnInterval = setInterval(randomTurn, 5000); // Decide to turn every 10 seconds
-    
-    // Handle session state on load
+    // Start session if countdown is active
     if (countdown > 0) {
-        sessionStatus.textContent = `Session Active`;
-        countdownContainer.classList.remove("hidden"); // Show the countdown
-        startButton.classList.add("hidden"); // Hide the Start button
-        pauseButton.classList.remove("hidden"); // Show Pause button
-        quitButton.classList.remove("hidden"); // Show Quit button
+        sessionStatus.textContent = "Session Active";
+        countdownContainer.classList.remove("hidden");
+        startButton.classList.add("hidden");
+        pauseButton.classList.remove("hidden");
+        quitButton.classList.remove("hidden");
+        monitorTabActivity(); // Start monitoring tab activity
         startCountdown(countdown);
     }
 });
+
+// Tab monitoring for distractions
+function monitorTabActivity() {
+    if (monitoredUrl) {
+        chrome.tabs.onActivated.addListener(() => {
+            console.log("Tab activated.");
+            checkActiveTab();
+        });
+        chrome.tabs.onUpdated.addListener(() => {
+            console.log("Tab updated.");
+            checkActiveTab();
+        });
+    } else {
+        console.error("No valid focus URL to monitor.");
+    }
+}
+
+// Check if the current tab matches the monitored URL
+function checkActiveTab() {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+        if (tabs.length > 0 && tabs[0].url && tabs[0].url.startsWith("http")) {
+            let activeUrl;
+            try {
+                activeUrl = new URL(tabs[0].url).hostname;
+                console.log("Current Active Tab Hostname:", activeUrl);
+            } catch (e) {
+                console.error("Error constructing URL from active tab:", e);
+                return;
+            }
+
+            // If the user is on the monitored URL, stop the distraction timer
+            if (activeUrl === monitoredUrl) {
+                console.log("User is on the focus page.");
+                if (isDistracted) {
+                    clearDistractedTimer();
+                    isDistracted = false;
+                }
+            } else {
+                console.log("User is off the focus page.");
+                if (!isDistracted) {
+                    startDistractedTimer();
+                    isDistracted = true;
+                }
+            }
+        } else {
+            console.log("Skipping non-http URL:", tabs[0].url || "No URL available");
+        }
+    });
+}
+
+// Start the distraction timer to decrease water level
+function startDistractedTimer() {
+    console.log("Starting distraction timer.");
+    distractedTimer = setInterval(() => {
+        console.log("Distracted for 10 seconds, reducing water level.");
+        updateWaterLevel(-10); // Decrease water by 10% every 10 seconds
+        if (currentWaterHeight === 0) {
+            console.log("Water level depleted; stopping distraction timer.");
+            clearInterval(distractedTimer);
+        }
+    }, 10000);
+}
+
+// Stop the distraction timer when user returns to focus
+function clearDistractedTimer() {
+    if (distractedTimer) {
+        clearInterval(distractedTimer);
+        distractedTimer = null;
+        console.log("Cleared distraction timer; user returned to focus page.");
+    }
+}
+
+// Start countdown timer
+function startCountdown(totalDuration) {
+    const countdownElement = document.getElementById("countdown-timer");
+    const sessionStatus = document.getElementById("session-status");
+
+    let startTime = parseInt(localStorage.getItem("countdownStartTime"), 10);
+    if (!startTime) {
+        startTime = Date.now();
+        localStorage.setItem("countdownStartTime", startTime);
+        localStorage.setItem("countdownDuration", totalDuration);
+    }
+
+    function updateCountdown() {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        const remainingTime = totalDuration - elapsedTime;
+
+        if (remainingTime <= 0) {
+            clearInterval(timer);
+            countdownElement.textContent = "Session Complete!";
+            sessionStatus.textContent = "🎉 Congratulations! Mission Complete! 🎉";
+            localStorage.removeItem("countdownStartTime");
+            localStorage.removeItem("countdownDuration");
+            pauseButton.classList.add("hidden");
+            quitButton.textContent = "Close";
+            return;
+        }
+
+        const hours = Math.floor(remainingTime / 3600);
+        const minutes = Math.floor((remainingTime % 3600) / 60);
+        const seconds = remainingTime % 60;
+        countdownElement.textContent = `Time Left: ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    updateCountdown();
+    timer = setInterval(updateCountdown, 1000);
+}
 
 // Handle Start button click
 startButton.addEventListener("click", () => {
@@ -92,14 +212,18 @@ startButton.addEventListener("click", () => {
 
     if (!newWindow) {
         alert("Popup blocked! Please allow popups for this site.");
+        return;
     }
 
-    const checkNewWindowClosed = setInterval(() => {
+    // Monitor if the new window is closed by checking focus back on the main window
+    const checkWindowFocus = () => {
         if (newWindow.closed) {
-            clearInterval(checkNewWindowClosed);
-            location.reload();
+            window.removeEventListener("focus", checkWindowFocus);
+            location.reload(); // Refresh once the window is confirmed closed
         }
-    }, 500);
+    };
+
+    window.addEventListener("focus", checkWindowFocus);
 });
 
 // Pause button logic
@@ -160,51 +284,6 @@ quitButton.addEventListener("click", () => {
     pauseButton.classList.add("hidden"); // Hide Pause button
     quitButton.classList.add("hidden"); // Hide Quit button
 });
-
-
-// Countdown Timer Function
-function startCountdown(totalDuration) {
-    const countdownElement = document.getElementById("countdown-timer");
-    const sessionStatus = document.getElementById("session-status");
-
-    // Store the current time and total duration if not already saved
-    let startTime = parseInt(localStorage.getItem("countdownStartTime"), 10);
-    if (!startTime) {
-        startTime = Date.now();
-        localStorage.setItem("countdownStartTime", startTime);
-        localStorage.setItem("countdownDuration", totalDuration);
-    }
-
-    function updateCountdown() {
-        const elapsedTime = Math.floor((Date.now() - startTime) / 1000); // Elapsed time in seconds
-        const remainingTime = totalDuration - elapsedTime; // Calculate remaining time
-
-        if (remainingTime <= 0) {
-            clearInterval(timer); // Stop the timer
-            countdownElement.textContent = "Session Complete!";
-            sessionStatus.textContent = "🎉 Congratulations! Mission Complete! 🎉";
-
-            // Clear countdown state
-            localStorage.removeItem("countdownStartTime");
-            localStorage.removeItem("countdownDuration");
-
-            // Hide Pause button and show "Close"
-            pauseButton.classList.add("hidden");
-            quitButton.textContent = "Close";
-            return;
-        }
-
-        const hours = Math.floor(remainingTime / 3600);
-        const minutes = Math.floor((remainingTime % 3600) / 60);
-        const seconds = remainingTime % 60;
-
-        countdownElement.textContent = `Time Left: ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    // Initial update and interval setup
-    updateCountdown(); // Update immediately
-    timer = setInterval(updateCountdown, 1000);
-}
 
 
 // functions for fish system
@@ -281,49 +360,3 @@ increaseWaterButton.addEventListener("click", () => {
 decreaseWaterButton.addEventListener("click", () => {
     if (currentWaterHeight > 0) updateWaterLevel(-10);
 });
-
-
-function Timer(studyHours, studyMin) {
-    this.timeGoal = this.parseToSec(studyHours, studyMin);  
-    this.distractedTime = 0;
-    this.studyTime = 0;  
-
-    this.distractionTimer = null; 
-
-    if (this.timeGoal <= 5400) {  // 1.5 hours in seconds
-        this.timeLimit = 2;  // 5 minutes in seconds ////// 300
-    } else {
-        this.timeLimit = 600;  // 10 minutes in seconds
-    }
-}
-
-// Method to convert hours and minutes to seconds
-Timer.prototype.parseToSec = function(studyHours, studyMin) {
-    let hours = studyHours * 60 * 60; 
-    let minutes = studyMin * 60; 
-    return hours + minutes;
-};
-
-
-Timer.prototype.startInspection = function(isDistracted) {
-    if (isDistracted) {
-        this.handleDistraction();  
-    } 
-};
-
-Timer.prototype.handleDistraction = function() {
-    this.distractionTimer = setInterval(() => {
-        this.distractedTime += 1;  
-        if (this.distractedTime >= this.timeLimit) { 
-            updateWaterLevel(-30);
-        }
-    }, 1000);
-};
-
-Timer.prototype.stopCountingDistraction = function() {
-    if (this.distractionTimer) {
-        clearInterval(this.distractionTimer); 
-        this.distractionTimer = null;  
-    }
-    this.distractedTime = this.timeLimit; 
-};

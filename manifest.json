@@ -5,5 +5,12 @@
     "description": "Stay focused and save your fish!",
     "action": {
         "default_popup": "popup.html"
-    }
+    },
+    "permissions": [
+        "tabs",
+        "activeTab"
+    ],
+    "host_permissions": [
+        "*://*/*"
+    ]
 }
