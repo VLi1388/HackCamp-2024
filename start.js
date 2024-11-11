@@ -80,10 +80,6 @@ submitButton.addEventListener("click", () => {
             alert(`Monitoring set for ${monitoredUrl}.`);
         }
     });
-    
-    const newTimer = new Timer(hoursInput, minutesInput);
-    
-    newTimer.startInspection(isSwitchedTab);
 
     
 

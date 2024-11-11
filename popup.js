@@ -132,16 +132,18 @@ quitButton.addEventListener("click", () => {
     localStorage.removeItem("countdownStartTime");
     localStorage.removeItem("countdownDuration");
     localStorage.removeItem("pausedTime");
+    localStorage.removeItem("countdown"); // This ensures the countdown doesn't persist
 
     // Reset countdown and UI state
     countdown = 0; // Reset countdown variable
     sessionStatus.textContent = "Session Ended. Start a new session!";
-    countdownElement.textContent = "";
+    countdownElement.textContent = ""; // Clear the countdown display
     countdownContainer.classList.add("hidden"); // Hide countdown display
     startButton.classList.remove("hidden"); // Show Start button
     pauseButton.classList.add("hidden"); // Hide Pause button
     quitButton.classList.add("hidden"); // Hide Quit button
 });
+
 
 // Countdown Timer Function
 function startCountdown(totalDuration) {
