@@ -87,64 +87,104 @@ startButton.addEventListener("click", () => {
 
 // Pause button logic
 pauseButton.addEventListener("click", () => {
+    const sessionStatus = document.getElementById("session-status");
+
     if (isPaused) {
         // Resume the countdown
+        isPaused = false;
         sessionStatus.textContent = "Session Active";
         pauseButton.textContent = "Pause";
-        isPaused = false;
-        startCountdown(countdown); // Use the remaining countdown time
+
+        // Update the start time to account for the paused duration
+        const pausedTime = parseInt(localStorage.getItem("pausedTime"), 10);
+        const savedStartTime = parseInt(localStorage.getItem("countdownStartTime"), 10);
+
+        // Adjust start time to "resume" the countdown correctly
+        const adjustedStartTime = Date.now() - (pausedTime - savedStartTime);
+        localStorage.setItem("countdownStartTime", adjustedStartTime);
+
+        // Resume the countdown
+        startCountdown(countdown);
     } else {
         // Pause the countdown
+        isPaused = true;
         sessionStatus.textContent = "Session Paused";
         pauseButton.textContent = "Resume";
-        isPaused = true;
-        clearInterval(timer); // Stop the interval but preserve countdown
-        newTimer.stopCountingDistraction();
+
+        // Save the paused time
+        localStorage.setItem("pausedTime", Date.now());
+
+        // Stop the timer
+        clearInterval(timer);
     }
 });
 
+
 // Quit button logic
 quitButton.addEventListener("click", () => {
-    clearInterval(timer); // Stop the timer
-    localStorage.removeItem("countdown"); // Clear session data
-    localStorage.removeItem("studyHours");
-    localStorage.removeItem("studyMinutes");
-    localStorage.removeItem("focusURLs");
+    const countdownElement = document.getElementById("countdown-timer");
+    const sessionStatus = document.getElementById("session-status");
 
+    // Stop the active timer
+    clearInterval(timer);
+
+    // Clear countdown-related data from localStorage
+    localStorage.removeItem("countdownStartTime");
+    localStorage.removeItem("countdownDuration");
+    localStorage.removeItem("pausedTime");
+
+    // Reset countdown and UI state
+    countdown = 0; // Reset countdown variable
     sessionStatus.textContent = "Session Ended. Start a new session!";
-    countdownContainer.classList.add("hidden"); // Hide countdown
+    countdownElement.textContent = "";
+    countdownContainer.classList.add("hidden"); // Hide countdown display
     startButton.classList.remove("hidden"); // Show Start button
     pauseButton.classList.add("hidden"); // Hide Pause button
     quitButton.classList.add("hidden"); // Hide Quit button
-    fishPlaceholder.innerHTML = "<p>🐟 Your fish will appear here...</p>";
 });
 
 // Countdown Timer Function
-function startCountdown(duration) {
+function startCountdown(totalDuration) {
     const countdownElement = document.getElementById("countdown-timer");
+    const sessionStatus = document.getElementById("session-status");
 
-    timer = setInterval(() => {
-        if (isPaused) return; // Skip updating if paused
+    // Store the current time and total duration if not already saved
+    let startTime = parseInt(localStorage.getItem("countdownStartTime"), 10);
+    if (!startTime) {
+        startTime = Date.now();
+        localStorage.setItem("countdownStartTime", startTime);
+        localStorage.setItem("countdownDuration", totalDuration);
+    }
 
-        const hours = Math.floor(duration / 3600);
-        const minutes = Math.floor((duration % 3600) / 60);
-        const seconds = duration % 60;
+    function updateCountdown() {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000); // Elapsed time in seconds
+        const remainingTime = totalDuration - elapsedTime; // Calculate remaining time
+
+        if (remainingTime <= 0) {
+            clearInterval(timer); // Stop the timer
+            countdownElement.textContent = "Session Complete!";
+            sessionStatus.textContent = "🎉 Congratulations! Mission Complete! 🎉";
+
+            // Clear countdown state
+            localStorage.removeItem("countdownStartTime");
+            localStorage.removeItem("countdownDuration");
+
+            // Hide Pause button and show "Close"
+            pauseButton.classList.add("hidden");
+            quitButton.textContent = "Close";
+            return;
+        }
+
+        const hours = Math.floor(remainingTime / 3600);
+        const minutes = Math.floor((remainingTime % 3600) / 60);
+        const seconds = remainingTime % 60;
 
         countdownElement.textContent = `Time Left: ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
 
-        if (duration <= 0) {
-            clearInterval(timer);
-            countdownElement.textContent = "Session Complete!";
-            sessionStatus.textContent = "Focus session complete!";
-            localStorage.removeItem("countdown");
-            pauseButton.classList.add("hidden"); // Hide Pause button
-            quitButton.textContent = "Close";
-        } else {
-            duration--;
-            countdown = duration; // Update the remaining countdown time
-            localStorage.setItem("countdown", duration); // Persist remaining time
-        }
-    }, 1000);
+    // Initial update and interval setup
+    updateCountdown(); // Update immediately
+    timer = setInterval(updateCountdown, 1000);
 }
 
 
