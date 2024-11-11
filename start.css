@@ -42,17 +42,25 @@ input {
 }
 
 #time-container {
-    display: flex;
-    gap: 10px;
+    display: flex; /* Arrange inputs and labels in a row */
+    align-items: baseline; /* Align labels and inputs to the same text baseline */
+    gap: 10px; /* Add space between inputs and labels */
     margin-bottom: 20px;
 }
 
-#time-container label {
-    flex: 1;
+#time-container input {
+    width: 60px; /* Fixed width for inputs */
+    padding: 5px;
+    text-align: center; /* Center-align text inside inputs */
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px; /* Rounded corners */
 }
 
-#time-container input {
-    flex: 1;
+#time-container label {
+    font-size: 14px; /* Match input font size */
+    margin: 0; /* Remove extra margins */
+    align-self: baseline; /* Align labels to input baselines */
 }
 
 .url-row {
