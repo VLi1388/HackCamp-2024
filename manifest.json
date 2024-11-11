@@ -12,5 +12,10 @@
     ],
     "host_permissions": [
         "*://*/*"
-    ]
+    ],
+    "icons": {
+        "16": "fishFrames/R1.png",
+        "48": "fishFrames/R1.png",
+        "128": "fishFrames/R1.png"
+    }
 }

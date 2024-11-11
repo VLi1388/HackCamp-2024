@@ -83,13 +83,16 @@ button:hover {
 #countdown-container {
     margin-top: 10px;
     text-align: center;
-    font-size: 16px;
+    font-size: 56px;
     color: #264653;
 }
 
 #countdown-timer {
-    font-weight: bold;
-    color: #2a9d8f;
+    font-size: 50px; /* Set the font size to 60px /
+    font-weight: bold; / Make the text bold for better visibility /
+    text-align: center; / Center the text horizontally /
+    color: #264653; / Optional: Add a color for better contrast /
+    margin-top: 20px; / Add space above the countdown if needed */
 }
 
 /* Action Buttons */

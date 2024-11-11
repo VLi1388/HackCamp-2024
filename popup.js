@@ -53,7 +53,7 @@ let isDistracted = false;
 let frameIndex = 0; // Start at the first frame
 const fish = document.createElement("img");
 fish.style.position = "absolute";
-fish.style.width = "30px"; // Set desired width (smaller size)
+fish.style.width = "50px"; // Set desired width (smaller size)
 fish.style.height = "auto"; // Maintain aspect ratio
 fishContainer.appendChild(fish);
 
@@ -277,7 +277,7 @@ quitButton.addEventListener("click", () => {
 
     // Reset countdown and UI state
     countdown = 0; // Reset countdown variable
-    sessionStatus.textContent = "Session Ended. Start a new session!";
+    sessionStatus.textContent = "SEE YOU NEXT TIME YOU BETTER COME BACK TO STUDY MORE!";
     countdownElement.textContent = ""; // Clear the countdown display
     countdownContainer.classList.add("hidden"); // Hide countdown display
     startButton.classList.remove("hidden"); // Show Start button
